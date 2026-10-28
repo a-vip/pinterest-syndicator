@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any, Tuple
 
 from card_generator import generate_svg_card
+from image_watermarker import create_branded_pin, is_pillow_available
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     try:
@@ -127,8 +128,8 @@ def fetch_from_rss() -> List[Dict[str, Any]]:
         print(f"[!] Primary RSS discovery notice: {e}")
         return []
 
-def build_pinterest_payload(post: dict, board_id: str, image_url: str) -> dict:
-    """Formats Pinterest API v5 payload with strict character constraints and UTM tracking."""
+def build_pinterest_payload(post: dict, board_id: str, image_url: str, image_base64: Optional[str] = None, content_type: str = "image/jpeg") -> dict:
+    """Formats Pinterest API v5 payload with strict character constraints, UTM tracking, and base64 or URL media."""
     title = post["title"][:98]
     base_link = post["link"].split("?")[0].rstrip("/") + "/"
     utm_link = f"{base_link}?utm_source=pinterest&utm_medium=social&utm_campaign=syndication"
@@ -143,15 +144,24 @@ def build_pinterest_payload(post: dict, board_id: str, image_url: str) -> dict:
         f"#{category.replace(' ', '')} #AIEthics #AIGovernance #TechPolicy #AviPerera"
     )[:495]
 
+    if image_base64:
+        media_source = {
+            "source_type": "image_base64",
+            "content_type": content_type,
+            "data": image_base64
+        }
+    else:
+        media_source = {
+            "source_type": "image_url",
+            "url": image_url
+        }
+
     return {
         "link": utm_link,
         "title": title,
         "description": description,
         "board_id": board_id,
-        "media_source": {
-            "source_type": "image_url",
-            "url": image_url
-        }
+        "media_source": media_source
     }
 
 def post_pin(access_token: str, payload: dict) -> Tuple[bool, str]:
@@ -230,24 +240,42 @@ def main() -> int:
         category = post.get("category", "AI Ethics & Society")
         excerpt = post.get("excerpt", "")
         
-        # 1. Determine image: use article featured image, or generate clean branded SVG card
+        # 1. Determine base image
         image_url = post.get("image_url")
         if not image_url:
             image_url = default_image_url
-            
-        # Also generate local branded card for consistency
+
+        safe_basename = re.sub(r"[^a-zA-Z0-9_-]", "_", title)[:50]
+
+        # 2. Try creating branded 1000x1500 composite image with Avi Perera's logo and aviperera.com watermark
+        jpg_card_path = os.path.join(CARDS_DIR, f"{safe_basename}.jpg")
+        image_base64, content_type = create_branded_pin(
+            title=title,
+            image_url=image_url,
+            category=category,
+            excerpt=excerpt,
+            output_path=jpg_card_path
+        )
+        if image_base64:
+            print(f"[OK] Generated branded composite pin with logo & watermark: {jpg_card_path}")
+
+        # 3. Also generate local branded SVG card for vector preservation
         svg_content = generate_svg_card(
             title=title,
             category=category,
             excerpt=excerpt
         )
-        safe_filename = re.sub(r"[^a-zA-Z0-9_-]", "_", title)[:50] + ".svg"
-        card_path = os.path.join(CARDS_DIR, safe_filename)
-        with open(card_path, "w", encoding="utf-8") as f:
+        svg_card_path = os.path.join(CARDS_DIR, f"{safe_basename}.svg")
+        with open(svg_card_path, "w", encoding="utf-8") as f:
             f.write(svg_content)
-        print(f"[OK] Generated branded card: {card_path}")
 
-        payload = build_pinterest_payload(post, board_id=board_id or "DEMO_BOARD_ID", image_url=image_url)
+        payload = build_pinterest_payload(
+            post,
+            board_id=board_id or "DEMO_BOARD_ID",
+            image_url=image_url,
+            image_base64=image_base64,
+            content_type=content_type or "image/jpeg"
+        )
 
         item_summary = {
             "title": title,

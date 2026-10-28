@@ -110,3 +110,4 @@ def generate_svg_card(
     <text x="500" y="1395" text-anchor="middle" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400">Research &amp; Analysis by {author}</text>
 </svg>"""
     return svg
+

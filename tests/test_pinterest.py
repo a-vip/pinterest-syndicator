@@ -46,6 +46,18 @@ class TestPinterestSyndicator(unittest.TestCase):
         self.assertIn("utm_source=pinterest", payload["link"])
         self.assertEqual(payload["media_source"]["url"], image_url)
 
+        # Test base64 payload branch
+        payload_b64 = build_pinterest_payload(
+            post,
+            board_id=board_id,
+            image_url=image_url,
+            image_base64="aGVsbG8=",
+            content_type="image/jpeg"
+        )
+        self.assertEqual(payload_b64["media_source"]["source_type"], "image_base64")
+        self.assertEqual(payload_b64["media_source"]["data"], "aGVsbG8=")
+        self.assertEqual(payload_b64["media_source"]["content_type"], "image/jpeg")
+
     def test_generate_svg_card(self):
         svg = generate_svg_card(
             title="The Future of Autonomous AI Systems & Accountability",
@@ -80,3 +92,4 @@ class TestPinterestSyndicator(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
