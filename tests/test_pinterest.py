@@ -9,6 +9,7 @@ from pinterest_engine import (
     clean_text,
     extract_image_from_content,
     build_pinterest_payload,
+    generate_seo_filename,
     load_state,
     save_state
 )
@@ -19,6 +20,20 @@ class TestPinterestSyndicator(unittest.TestCase):
         raw = "<p>Test <strong>bold</strong> &amp; clean</p>"
         cleaned = clean_text(raw)
         self.assertEqual(cleaned, "Test bold & clean")
+
+    def test_generate_seo_filename(self):
+        title = "Has Trump Become a Dictator? What the Evidence Shows"
+        cat = "Governance & Politics"
+        filename = generate_seo_filename(title, category=cat, author="Avi Perera", domain="aviperera.com")
+        self.assertTrue(filename.startswith("avi-perera-"))
+        self.assertIn("trump", filename)
+        self.assertIn("dictator", filename)
+        self.assertIn("evidence", filename)
+        self.assertIn("governance", filename)
+        self.assertIn("aviperera-com", filename)
+        self.assertLessEqual(len(filename), 95)
+        self.assertNotIn(" ", filename)
+        self.assertNotIn("_", filename)
 
     def test_extract_image_from_content(self):
         html_with_img = '<p>Some intro</p><img src="https://aviperera.com/wp-content/uploads/sample.jpg" alt="test" />'

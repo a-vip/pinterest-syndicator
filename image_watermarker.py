@@ -192,3 +192,4 @@ def create_branded_pin(
 
     b64_str = base64.b64encode(jpeg_bytes).decode("utf-8")
     return b64_str, "image/jpeg"
+

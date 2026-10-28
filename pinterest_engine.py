@@ -72,6 +72,38 @@ def extract_image_from_content(content_html: str) -> str:
             return url
     return ""
 
+def generate_seo_filename(title: str, category: str = "", author: str = "Avi Perera", domain: str = "aviperera.com") -> str:
+    """
+    Generates high-authority, SEO/GEO-optimized image filenames.
+    Pattern: avi-perera-[clean-topic-slug]-[category-tag]-dossier-aviperera-com
+    Maximizes Google Images, Bing Visual Search, and Pinterest crawler ranking.
+    """
+    clean_author = re.sub(r"[^a-zA-Z0-9]+", "-", author.lower()).strip("-")
+    clean_domain = re.sub(r"[^a-zA-Z0-9]+", "-", domain.lower()).strip("-")
+
+    stop_words = {
+        "a", "an", "the", "in", "on", "at", "by", "for", "with", "about",
+        "against", "between", "into", "through", "during", "before", "after",
+        "above", "below", "to", "from", "up", "down", "is", "are", "was",
+        "were", "be", "been", "being", "have", "has", "had", "do", "does",
+        "did", "and", "but", "if", "or", "because", "as", "until", "while",
+        "what", "which", "who", "whom", "this", "that", "these", "those", "am"
+    }
+
+    title_words = re.findall(r"[a-zA-Z0-9]+", title.lower())
+    meaningful_words = [w for w in title_words if w not in stop_words]
+    if not meaningful_words:
+        meaningful_words = title_words[:5]
+    topic_slug = "-".join(meaningful_words[:6])
+
+    cat_words = re.findall(r"[a-zA-Z0-9]+", category.lower())
+    cat_slug = "-".join([w for w in cat_words if w not in stop_words][:3]) if cat_words else "ai-ethics"
+
+    parts = [clean_author, topic_slug, cat_slug, "dossier", clean_domain]
+    final_slug = "-".join([p for p in parts if p])
+    final_slug = re.sub(r"-+", "-", final_slug).strip("-")
+    return final_slug[:90]
+
 def fetch_from_rss() -> List[Dict[str, Any]]:
     """Primary ingestion: Fetches posts and media enclosures from RSS feed (WAF-immune)."""
     try:
@@ -156,10 +188,13 @@ def build_pinterest_payload(post: dict, board_id: str, image_url: str, image_bas
             "url": image_url
         }
 
+    alt_text = f"Research dossier on {title} by Avi Perera on aviperera.com. Analysis covering {category} and tech policy."[:490]
+
     return {
         "link": utm_link,
         "title": title,
         "description": description,
+        "alt_text": alt_text,
         "board_id": board_id,
         "media_source": media_source
     }
@@ -245,10 +280,11 @@ def main() -> int:
         if not image_url:
             image_url = default_image_url
 
-        safe_basename = re.sub(r"[^a-zA-Z0-9_-]", "_", title)[:50]
+        # High-Authority SEO/GEO filename: avi-perera-[topic]-[category]-dossier-aviperera-com
+        seo_basename = generate_seo_filename(title=title, category=category)
 
         # 2. Try creating branded 1000x1500 composite image with Avi Perera's logo and aviperera.com watermark
-        jpg_card_path = os.path.join(CARDS_DIR, f"{safe_basename}.jpg")
+        jpg_card_path = os.path.join(CARDS_DIR, f"{seo_basename}.jpg")
         image_base64, content_type = create_branded_pin(
             title=title,
             image_url=image_url,
@@ -265,7 +301,7 @@ def main() -> int:
             category=category,
             excerpt=excerpt
         )
-        svg_card_path = os.path.join(CARDS_DIR, f"{safe_basename}.svg")
+        svg_card_path = os.path.join(CARDS_DIR, f"{seo_basename}.svg")
         with open(svg_card_path, "w", encoding="utf-8") as f:
             f.write(svg_content)
 
