@@ -25,7 +25,8 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     except Exception:
         pass
 
-PINTEREST_API_ENDPOINT = "https://api.pinterest.com/v5/pins"
+PINTEREST_API_ENDPOINT = os.getenv("PINTEREST_API_ENDPOINT", "https://api.pinterest.com/v5/pins")
+PINTEREST_SANDBOX_ENDPOINT = "https://api-sandbox.pinterest.com/v5/pins"
 RSS_FEED_URL = "https://aviperera.com/feed/"
 WP_POSTS_API = "https://aviperera.com/wp-json/wp/v2/posts?per_page=10&_fields=id,link,title,excerpt,jetpack_featured_media_url"
 STATE_FILE = os.path.join(os.path.dirname(__file__), "state", "pinned_history.json")
@@ -154,32 +155,47 @@ def build_pinterest_payload(post: dict, board_id: str, image_url: str) -> dict:
     }
 
 def post_pin(access_token: str, payload: dict) -> Tuple[bool, str]:
-    """Posts a pin to Pinterest via REST API v5."""
+    """Posts a pin to Pinterest via REST API v5, handling token cleaning and sandbox fallback."""
     if not access_token:
         return False, "Access token not provided"
-        
+
+    clean_token = access_token.strip()
+    if clean_token.lower().startswith("bearer "):
+        clean_token = clean_token[7:].strip()
+
     headers = {
-        "Authorization": f"Bearer {access_token.strip()}",
+        "Authorization": f"Bearer {clean_token}",
         "Content-Type": "application/json",
         "User-Agent": "AviPinterestSyndicator/1.0"
     }
-    
+
     data = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(PINTEREST_API_ENDPOINT, data=data, headers=headers)
-    
-    try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            res_data = json.loads(resp.read().decode("utf-8"))
-            pin_id = res_data.get("id", "created")
-            print(f"[OK] Successfully created Pinterest Pin: ID {pin_id}")
-            return True, pin_id
-    except urllib.error.HTTPError as e:
-        err_msg = e.read().decode("utf-8", errors="replace")
-        print(f"[!] Pinterest API HTTP Error {e.code}: {err_msg}")
-        return False, err_msg
-    except Exception as e:
-        print(f"[!] Failed to post Pin: {e}")
-        return False, str(e)
+
+    endpoints_to_try = [PINTEREST_API_ENDPOINT]
+    if PINTEREST_API_ENDPOINT != PINTEREST_SANDBOX_ENDPOINT:
+        endpoints_to_try.append(PINTEREST_SANDBOX_ENDPOINT)
+
+    last_error = ""
+    for ep in endpoints_to_try:
+        req = urllib.request.Request(ep, data=data, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                res_data = json.loads(resp.read().decode("utf-8"))
+                pin_id = res_data.get("id", "created")
+                print(f"[OK] Successfully created Pinterest Pin ({ep}): ID {pin_id}")
+                return True, pin_id
+        except urllib.error.HTTPError as e:
+            err_msg = e.read().decode("utf-8", errors="replace")
+            last_error = f"HTTP {e.code} on {ep}: {err_msg}"
+            print(f"[!] Pinterest API {last_error}")
+            # If not 401 or if we reached the last endpoint, stop
+            if e.code != 401:
+                return False, last_error
+        except Exception as e:
+            last_error = str(e)
+            print(f"[!] Request error on {ep}: {e}")
+
+    return False, last_error
 
 def main() -> int:
     print("=== Autonomous Pinterest Visual Syndicator & Traffic Engine ===")
@@ -292,3 +308,4 @@ def output_step_summary(items: list, dry_run: bool, has_credentials: bool):
 
 if __name__ == "__main__":
     sys.exit(main())
+
