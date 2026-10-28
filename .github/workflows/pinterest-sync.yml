@@ -1,0 +1,45 @@
+name: Pinterest Visual Syndication
+
+on:
+  schedule:
+    # Runs twice daily at 06:00 and 18:00 UTC (offset from Bluesky/Mastodon schedules)
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  syndicate:
+    name: Syndicate Articles to Pinterest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run Pinterest Syndicator Engine
+        env:
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+          PINTEREST_BOARD_ID: ${{ secrets.PINTEREST_BOARD_ID }}
+          PINTEREST_DEFAULT_IMAGE_URL: ${{ secrets.PINTEREST_DEFAULT_IMAGE_URL }}
+        run: |
+          python pinterest_engine.py
+
+      - name: Commit Pinned State & Generated Cards
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add state/pinned_history.json generated_cards/
+          if git diff --staged --quiet; then
+            echo "No state changes or new cards to commit."
+          else
+            git commit -m "chore(pinterest): record pinned publication state [skip ci]"
+            git push
+          fi
