@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1500" width="1000" height="1500">
+    <defs>
+        <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0B0F19" />
+            <stop offset="50%" stop-color="#111827" />
+            <stop offset="100%" stop-color="#1F2937" />
+        </linearGradient>
+        <linearGradient id="accent-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38BDF8" />
+            <stop offset="100%" stop-color="#818CF8" />
+        </linearGradient>
+        <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.6"/>
+        </filter>
+    </defs>
+
+    <!-- Deep Minimalist Canvas Background -->
+    <rect width="1000" height="1500" fill="url(#bg-grad)" />
+
+    <!-- Subtle Geometric Grid / Framing Accent -->
+    <rect x="50" y="50" width="900" height="1400" rx="32" fill="none" stroke="#334155" stroke-width="2" opacity="0.4" />
+    <circle cx="500" cy="180" r="140" fill="#38BDF8" opacity="0.04" />
+    <circle cx="500" cy="750" r="400" fill="#818CF8" opacity="0.03" />
+
+    <!-- Header Badge Pill -->
+    <g transform="translate(500, 160)">
+        <rect x="-180" y="-24" width="360" height="48" rx="24" fill="#1E293B" stroke="#475569" stroke-width="1.5" />
+        <text x="0" y="7" text-anchor="middle" fill="#38BDF8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="3">WEAPONS</text>
+    </g>
+
+    <!-- Center Card Enclosure -->
+    <rect x="90" y="260" width="820" height="840" rx="24" fill="#0F172A" fill-opacity="0.85" stroke="#1E293B" stroke-width="2" filter="url(#card-shadow)" />
+
+    <!-- Decorative Accent Line -->
+    <rect x="430" y="320" width="140" height="4" rx="2" fill="url(#accent-grad)" />
+
+    <!-- Article Main Title -->
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Georgia', serif" font-size="52" font-weight="800" fill="#F8FAFC" letter-spacing="-0.5">
+        <tspan x="500" y="485" text-anchor="middle">Unitree H1 and H2</tspan>
+    </text>
+
+    <!-- Article Excerpt / Thesis Synopsis -->
+    <text font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#94A3B8" opacity="0.95">
+        <tspan x="500" y="615" text-anchor="middle">A forensic analysis of Unitree’s H1 and H2</tspan>
+        <tspan x="500" y="653" text-anchor="middle">humanoid robots: specifications, PLA</tspan>
+        <tspan x="500" y="691" text-anchor="middle">militarisation, UniPwn security flaws, FCC</tspan>
+    </text>
+
+    <!-- Bottom Call-To-Action Container -->
+    <g transform="translate(500, 1220)">
+        <!-- Read More Button -->
+        <rect x="-210" y="-32" width="420" height="64" rx="32" fill="url(#accent-grad)" />
+        <text x="0" y="9" text-anchor="middle" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700" letter-spacing="1">READ FULL DOSSIER →</text>
+    </g>
+
+    <!-- Footer Branding & Author Verification -->
+    <text x="500" y="1360" text-anchor="middle" fill="#E2E8F0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="600" letter-spacing="1">AVIPERERA.COM</text>
+    <text x="500" y="1395" text-anchor="middle" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400">Research &amp; Analysis by Avi Perera</text>
+</svg>
