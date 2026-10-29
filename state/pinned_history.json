@@ -23,7 +23,13 @@
       "link": "https://aviperera.com/php2shell-ai-discovered-php-vulnerability/",
       "pin_id": "1102396815080340134",
       "timestamp": "2026-10-28T22:15:50.990326+00:00"
+    },
+    "https://aviperera.com/?p=4629": {
+      "title": "V-BAT (MQ-35)",
+      "link": "https://aviperera.com/v-bat-mq-35/",
+      "pin_id": "1102396815080387513",
+      "timestamp": "2026-10-29T12:23:43.043728+00:00"
     }
   },
-  "last_run": "2026-10-28T22:15:50.990345+00:00"
+  "last_run": "2026-10-29T12:23:43.043750+00:00"
 }
